@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>3-Servo Pulse Control</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; }
+    .card { max-width: 520px; padding: 1rem; border: 1px solid #ddd; border-radius: 14px; }
+    .row { display: flex; gap: .75rem; align-items: center; margin: .75rem 0; }
+    button { padding: .6rem 1rem; border-radius: 10px; border: 1px solid #ccc; cursor: pointer; }
+    code { background:#f6f6f6; padding:.15rem .35rem; border-radius:6px; }
+    #conn { font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Three Servos — Pulse to 90° for 3s</h1>
+    <p>Broker: <code>wss://test.mosquitto.org:8081</code></p>
+    <p>Topics: <code>yourname/nano32/servo/1</code>, <code>.../2</code>, <code>.../3</code> (payload = integer degrees)</p>
+    <p>Connection: <span id="conn">connecting…</span></p>
+
+    <div class="row">
+      <button id="b1" onclick="pulse(1)">Button 1 (Servo 1)</button>
+      <small>→ 90° for 3s, then back to 0°</small>
+    </div>
+    <div class="row">
+      <button id="b2" onclick="pulse(2)">Button 2 (Servo 2)</button>
+      <small>→ 90° for 3s, then back to 0°</small>
+    </div>
+    <div class="row">
+      <button id="b3" onclick="pulse(3)">Button 3 (Servo 3)</button>
+      <small>→ 90° for 3s, then back to 0°</small>
+    </div>
+  </div>
+
+  <!-- MQTT.js (browser build) -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script>
+    // --- CONFIG: set your unique base topic here ---
+    const BASE = 'yourname/nano32/servo/';
+    const T1 = BASE + '1';
+    const T2 = BASE + '2';
+    const T3 = BASE + '3';
+
+    const connEl = document.getElementById('conn');
+
+    // Connect over secure WebSockets (works on GitHub Pages)
+    const client = mqtt.connect('wss://test.mosquitto.org:8081', {
+      clientId: 'web-' + Math.random().toString(16).slice(2),
+      protocolVersion: 4,
+      keepalive: 30,
+      reconnectPeriod: 1500
+    });
+
+    client.on('connect',   () => connEl.textContent = 'connected');
+    client.on('reconnect', () => connEl.textContent = 'reconnecting…');
+    client.on('close',     () => connEl.textContent = 'disconnected');
+    client.on('error',     () => connEl.textContent = 'error');
+
+    function pub(topic, value) {
+      // qos:1, retain:false so pulses are not replayed on reconnect
+      client.publish(topic, String(value), { qos: 1, retain: false });
+    }
+
+    // Disable button briefly to prevent spam while servo is pulsing
+    function lock(btn, ms) {
+      btn.disabled = true;
+      setTimeout(() => btn.disabled = false, ms);
+    }
+
+    // Pulse: go to 90°, wait 3s, return to 0°
+    function pulse(id) {
+      const topic = (id === 1) ? T1 : (id === 2) ? T2 : T3;
+      const btn = document.getElementById('b' + id);
+
+      // Send the action
+      pub(topic, 90);
+      lock(btn, 3200);
+      setTimeout(() => pub(topic, 0), 3000);
+    }
+  </script>
+</body>
+</html>
