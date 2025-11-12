@@ -75,9 +75,8 @@
       const btn = document.getElementById('b' + id);
 
       // Send the action
-      pub(topic, 90);
+      pub(topic, "show");
       lock(btn, 3200);
-      setTimeout(() => pub(topic, 0), 3000);
     }
   </script>
 </body>
