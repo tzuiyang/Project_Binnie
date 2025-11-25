@@ -61,13 +61,9 @@
     const connEl = document.getElementById('conn');
 
     // MQTT connect
-    const client = mqtt.connect('wss://test.mosquitto.org:8081', {
+    const client = mqtt.connect('wss://broker.hivemq.com:8000/mqtt', {
       clientId: 'web-' + Math.random().toString(16).slice(2),
-      protocolVersion: 4,
-      keepalive: 30,
-      reconnectPeriod: 1500
     });
-
     client.on('connect', () => {
       connEl.textContent = "connected";
       connEl.classList.remove("bad");
