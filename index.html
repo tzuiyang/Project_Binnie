@@ -61,7 +61,7 @@
     const connEl = document.getElementById('conn');
 
     // MQTT connect
-    const client = mqtt.connect('wws://broker.hivemq.com:8884/mqtt', {
+    const client = mqtt.connect('wss://broker.hivemq.com:8884/mqtt', {
       clientId: 'web-' + Math.random().toString(16).slice(2),
     });
     client.on('connect', () => {
